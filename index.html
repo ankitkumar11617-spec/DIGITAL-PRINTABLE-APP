@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Printable Notes</title>
+<script src="lib/pdf.min.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--fg:#161a24;--mut:#6a7283;--line:#e1e4ec;--ac:#4338ca;--soft:#eef0fb;--ok:#0f9d58;--top:#0284c7;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1117;--card:#181b24;--fg:#eceef4;--mut:#9aa2b2;--line:#2b303c;--ac:#9aa5ff;--soft:#1f2330;--ok:#3ddc84;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1117;--card:#181b24;--fg:#eceef4;--mut:#9aa2b2;--line:#2b303c;--ac:#9aa5ff;--soft:#1f2330;--ok:#3ddc84;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--topbg,#0284c7)}
+#app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:110px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.hh{background:linear-gradient(90deg,#0ea5e9,#0369a1);color:#fff;padding:16px 18px}
+.hh h1{margin:0;font-size:22px}.hh p{margin:2px 0 0;opacity:.9}
+.wh{background:var(--card);border-bottom:1px solid var(--line);padding:12px 14px 0}
+.wr{display:flex;align-items:center;gap:12px}
+.wr button{background:none;border:0;color:var(--fg);font-size:26px;padding:4px 8px;cursor:pointer}
+.wr h1{margin:0;font-size:20px;flex:1}.wr small{display:block;color:var(--mut);font-size:13px;font-weight:400}
+.pill{border:1px solid var(--line);background:var(--soft);color:var(--ac);border-radius:999px;padding:4px 12px;font-weight:600;font-size:14px}
+.seg4{display:flex;gap:6px;margin-top:10px}.seg4 i{flex:1;height:4px;border-radius:2px;background:var(--line)}.seg4 i.on{background:var(--ac)}
+main{padding:14px}
+h2{font-size:19px;margin:20px 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.hero{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,#4c1d95,#4338ca 60%,#2563eb);color:#fff;border-radius:18px;padding:18px}
+.hero b{font-size:20px;line-height:1.15;flex:1}.hero small{display:block;font-weight:400;opacity:.85;margin-top:4px;font-size:13px}
+.mini{width:44px;height:58px;border-radius:5px;background:#fff;flex:none}.mini.dk{background:#2a0b12;border:2px solid #fff3}
+.dz{border:2px dashed var(--line);border-radius:18px;padding:22px 14px;text-align:center}
+.dz p{color:var(--mut);margin:0 0 14px}
+button.pri{background:var(--ac);color:var(--bg);border:0;border-radius:999px;padding:13px 28px;font:inherit;font-weight:700;cursor:pointer}
+.ft{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ft div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.ft i{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--soft);color:var(--ac);font-style:normal;font-size:18px;margin-bottom:8px}
+.ft b{display:block}.ft span{color:var(--mut);font-size:13px}
+.more{width:100%;margin-top:10px;background:var(--soft);color:var(--ac);border:0;border-radius:12px;padding:12px;font:inherit;font-weight:600;cursor:pointer}
+.rc{display:flex;justify-content:space-between;align-items:center;gap:8px}.rc b{word-break:break-all;font-size:15px}.rc span{color:var(--mut);font-size:13px}
+.tag{display:inline-block;background:#d9f5e6;color:#0a6b3a;border-radius:8px;padding:2px 9px;font-size:13px;font-weight:600;margin-top:6px}
+.bar{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center;margin-bottom:12px}.bar b{color:var(--ac)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tile{position:relative;border-radius:14px;overflow:hidden;background:#000;cursor:pointer;border:2px solid transparent}
+.tile canvas{display:block;width:100%;background:#222}
+.tile.rm{opacity:.35;border-color:#e11d48}
+.num{position:absolute;left:6px;top:6px;background:#000a;color:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-size:13px}
+.ck{position:absolute;right:6px;top:6px;background:#2563eb;color:#fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-size:15px}
+.tile.rm .ck{background:#e11d48}
+.add{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:#16a34a;color:#fff;font-size:22px;line-height:1;cursor:pointer;opacity:.75}
+.add.on{opacity:1;outline:3px solid #fff}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tabs button{flex:1;padding:11px 4px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--mut);font:inherit;font-weight:600;cursor:pointer}
+.tabs button.on{border-color:var(--ac);background:var(--soft);color:var(--ac)}
+.lg{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.lc{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px;cursor:pointer}
+.lc.on{border-color:var(--ac);background:var(--soft)}
+.lc h3{margin:0 0 8px;font-size:17px;display:flex;justify-content:space-between;align-items:center;gap:4px}
+.lc h3 em{font-style:normal;font-size:11px;background:var(--soft);color:var(--ac);border-radius:999px;padding:2px 8px;font-weight:600}
+.lc p{margin:8px 0 0;color:var(--mut);font-size:13px}
+.pvw{width:100%;display:block}
+.seg{display:flex;gap:8px;margin-top:8px}.seg button{flex:1;padding:11px 4px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--fg);font:inherit;cursor:pointer}
+.seg button.on{border-color:var(--ac);background:var(--soft);color:var(--ac);font-weight:700}
+.card h3{margin:0;font-size:16px}
+.fx{position:fixed;left:50%;transform:translateX(-50%);width:100%;max-width:480px;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line)}
+#cta{padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px))}
+#cb{width:100%;border:0;border-radius:999px;padding:16px;font:inherit;font-size:18px;font-weight:700;color:#fff;background:linear-gradient(90deg,#6d28d9,#2563eb);cursor:pointer}
+#cb:disabled{opacity:.45}
+#nav{display:flex;padding-bottom:env(safe-area-inset-bottom,0px)}
+#nav button{flex:1;background:none;border:0;padding:10px 0;color:var(--mut);font:inherit;font-size:13px;cursor:pointer}
+#nav button b{display:block;font-size:22px;line-height:1.1}#nav button.on{color:var(--ac);font-weight:700}
+.prog{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:14px 0 8px}#pb{height:100%;width:0;background:linear-gradient(90deg,#6d28d9,#2563eb);transition:width .2s}
+.rp{width:100%;border:1px solid var(--line);border-radius:10px;display:block}
+.st{display:flex;gap:12px;margin:12px 0}.st div{flex:1}.st b{display:block;font-size:22px}.st span{color:var(--mut);font-size:13px}
+.sec{width:100%;background:var(--soft);color:var(--ac);border:0;border-radius:999px;padding:13px;font:inherit;font-weight:600;margin-top:10px;cursor:pointer}
+.mu{color:var(--mut);font-size:13px;text-align:center;margin:10px 0 0}
+[hidden]{display:none!important}
+button:focus-visible,.tile:focus-visible,.lc:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+</style></head>
+<body><div id="app">
+<header id="hd"></header>
+<main id="v"></main>
+<div id="cta" class="fx" hidden><button id="cb"></button></div>
+<nav id="nav" class="fx"></nav>
+<input id="f" type="file" accept="application/pdf,.pdf" hidden>
+</div>
+<script>
+const $=s=>document.querySelector(s),V=$('#v');
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+pdfjsLib.GlobalWorkerOptions.workerSrc='lib/pdf.worker.min.js';
+const L0=[['g1',1,1,'p','','1 Slide','Portrait','1×1 Full page'],['g2',1,2,'p','','2 Slides','Portrait','1×2 Grid'],['g3',1,3,'p','','3 Slides','Popular','1×3 Grid'],['g4',2,2,'l','','4 Slides','Landscape','2×2 Best for reading'],['g6',2,3,'p','','6 Slides','Portrait','2×3 Grid'],['g8',2,4,'p','','8 Slides','Recommended','4×2 Max paper savings'],['g10',2,5,'p','','10 Slides','Compact','2×5 Grid'],['q3',1,3,'p','b','3 Slides','New','3 Slides + Note'],['q4',1,4,'p','r','4 Slides','New','4 Slides + Note'],['q6',2,3,'p','b','6 Slides','New','6 Slides + Note']];
+const LAY=L0.map(a=>({id:a[0],c:a[1],r:a[2],o:a[3],note:a[4],t:a[5],tag:a[6],cap:a[7],n:a[1]*a[2]}));
+const S={tab:'home',step:0,doc:null,name:'',items:[],lay:'g3',tl:'all',color:'keep',conv:'auto',border:'thin',hist:[],ar:.7,busy:false,blob:null};
+try{S.hist=JSON.parse(localStorage.getItem('dtp_h')||'[]')}catch(e){}
+const FT=[['⟳','Smart Convert','Dark class notes become clean white pages.'],['▦','Multiple Layouts','Fit more slides on one A4 page.'],['☑','Select Pages','Remove unwanted slides first.'],['＋','Add Blank Page','Add a blank slot anywhere.'],['✎','Quick Note Layout','Space for formulas and notes.'],['⚙','Custom Settings','Colour mode and border style.'],['⏱','Conversion History','See past conversions.'],['🔒','On-Device Processing','No upload needed.']];
+let ftAll=false;
+
+function geo(L,W,H){const rr=L.note==='r',m=rr?16:22,g=rr?0:8;let aw=W-2*m,ah=H-2*m,note=null;
+ if(L.note==='b'){const t=ah*.8;note=[m,m+t+g,aw,ah-t-g];ah=t}
+ if(rr){const t=aw*.62,gp=10;note=[m+t+gp,m+24,aw-t-gp+m-8,ah-24];aw=t}
+ const cw=(aw-(L.c-1)*g)/L.c,ch=(ah-(L.r-1)*g)/L.r,cs=[];
+ for(let j=0;j<L.r;j++)for(let i=0;i<L.c;i++)cs.push([m+i*(cw+g),m+j*(ch+g),cw,ch]);
+ return{cs,note}}
+function prev(L){const W=L.o==='l'?842:595,H=L.o==='l'?595:842,{cs,note}=geo(L,W,H);
+ let s=`<svg class="pvw" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" rx="10" style="fill:var(--card);stroke:var(--line);stroke-width:4"/>`;
+ cs.forEach(c=>s+=`<rect x="${c[0]}" y="${c[1]}" width="${c[2]}" height="${c[3]}" rx="6" style="fill:var(--ac);fill-opacity:.15;stroke:var(--ac);stroke-opacity:.5;stroke-width:2"/>`);
+ if(note)s+=`<rect x="${note[0]}" y="${note[1]}" width="${note[2]}" height="${note[3]}" rx="8" style="fill:none;stroke:var(--ac);stroke-width:3"/><text x="${note[0]+14}" y="${note[1]+34}" font-size="28" style="fill:var(--fg)">Quick Note</text>`;
+ return s+'</svg>'}
+const fin=()=>{const a=[];S.items.forEach(it=>{if(!it.rm)a.push({p:it.p});if(it.bl)a.push({blank:1})});return a};
+const cur=()=>{const L=LAY.find(x=>x.id===S.lay);return(!L.note&&L.o==='l'&&S.pw<S.ph)?{...L,o:'p'}:L};
+function scl(){const L=cur(),W=L.o==='l'?842:595,H=L.o==='l'?595:842,c=geo(L,W,H).cs[0],ref=S.pw<S.ph?Math.min(595/S.pw,842/S.ph):Math.min(842/S.pw,595/S.ph),p=Math.round(Math.min(c[2]/S.pw,c[3]/S.ph)/ref*100),bad=S.pw<S.ph&&p<50;return `<p class="mu" style="margin:0 0 12px;color:${bad?'#e11d48':'var(--mut)'}">Pages print at about ${p}% size${bad?'. Text will be hard to read, pick a layout with fewer slides per sheet.':'.'}</p>`}
+const STEP=['','','Add or Remove Pages','Slides Per Page','Customize & Convert'];
+
+function render(){
+ const w=S.step>=2,hd=$('#hd');
+ document.documentElement.style.setProperty('--topbg',w?'var(--card)':'#0284c7');
+ if(!w){hd.innerHTML='<div class="hh"><h1>Printable Notes</h1><p>Transform online class notes</p></div>'}
+ else{hd.innerHTML=`<div class="wh"><div class="wr"><button data-a="back" aria-label="Back">←</button><h1>${STEP[S.step]}<small>Step ${S.step} of 4</small></h1><span class="pill">${S.step} / 4</span></div><div class="seg4">${[1,2,3,4].map(i=>`<i class="${i<=S.step?'on':''}"></i>`).join('')}</div></div>`}
+ $('#nav').hidden=w;
+ $('#nav').innerHTML=[['home','⌂','Home'],['hist','◷','History'],['set','⚙','Settings'],['pro','☺','Profile']].map(t=>`<button data-a="tab" data-v="${t[0]}" class="${S.tab===t[0]?'on':''}"><b>${t[1]}</b>${t[2]}</button>`).join('');
+ const cta=$('#cta'),cb=$('#cb');cta.hidden=!w||S.busy||!!S.blob;
+ if(!w){V.innerHTML=({home,hist,set:()=>'<h2>Settings</h2>'+setUI(),pro:()=>'<h2>Profile</h2><div class="card">Fan-made demo of the Printable Notes Play Store app. Your PDFs are processed on this device and never uploaded.</div>'})[S.tab]();return}
+ if(S.step===2){V.innerHTML=`<div class="bar" id="sb"></div><div class="grid">${S.items.map((it,i)=>`<div class="tile" tabindex="0" data-a="tog" data-i="${i}"><canvas data-p="${it.p}" style="aspect-ratio:${S.ar}"></canvas><span class="num">${i+1}</span><span class="ck">✓</span><button class="add" data-a="bl" data-i="${i}" aria-label="Add blank page after ${i+1}">+</button></div>`).join('')}</div>`;
+  V.querySelectorAll('canvas').forEach(c=>io.observe(c));upd()}
+ if(S.step===3){V.innerHTML=`<div class="tabs">${[['all','All Layouts'],['g','Grid Layouts'],['q','Quick Note']].map(t=>`<button data-a="tl" data-v="${t[0]}" class="${S.tl===t[0]?'on':''}">${t[1]}</button>`).join('')}</div>${scl()}<div class="lg">${LAY.filter(l=>S.tl==='all'||l.id[0]===S.tl).map(l=>`<div class="lc ${l.id===S.lay?'on':''}" tabindex="0" data-a="lay" data-v="${l.id}"><h3>${l.t}<em>${l.tag}</em></h3>${prev(l)}<p>${l.o==='l'?'Landscape':'Portrait'} • ${l.cap}</p></div>`).join('')}</div>`;
+  const l=cur();cb.textContent=`Continue with ${l.n} Slides →`;cb.disabled=false}
+ if(S.step===4){
+  if(S.blob){const b=S.blob;V.innerHTML=`<div class="card"><canvas id="rp" class="rp"></canvas><div class="st"><div><b>${b.sheets}</b><span>sheets for ${b.pages} pages</span></div><div><b>${(b.blob.size/1048576).toFixed(1)} MB</b><span>PDF size</span></div></div><button class="pri" style="width:100%" data-a="dl">Download PDF</button><button class="sec" data-a="new">Convert another PDF</button><p class="mu" id="dm" role="status"></p></div>`;shot(b.blob)}
+  else if(S.busy)V.innerHTML='<div class="card"><h3>Converting…</h3><div class="prog"><div id="pb"></div></div><p class="mu" id="pt" role="status"></p></div>';
+  else{const l=cur(),n=fin().length;V.innerHTML=`<div class="card"><h3>${n} pages → ${Math.ceil(n/l.n)} sheets</h3><p class="mu" style="text-align:left">${l.t} per sheet, ${l.o==='l'?'landscape':'portrait'}${l.note?', with Quick Note':''}</p></div>`+setUI();cb.textContent='Convert & save →';cb.disabled=!n}}
+}
+function setUI(){const o=(k,a)=>a.map(x=>`<button data-a="set" data-k="${k}" data-v="${x[0]}" class="${S[k]===x[0]?'on':''}">${x[1]}</button>`).join('');
+ return `<div class="card"><h3>Colour mode</h3><div class="seg">${o('color',[['keep','Keep pen colours'],['bw','Black & white']])}</div></div><div class="card"><h3>Dark background cleanup</h3><div class="seg">${o('conv',[['auto','Auto (dark pages)'],['off','Off (keep as is)']])}</div></div><div class="card"><h3>Border style</h3><div class="seg">${o('border',[['none','None'],['thin','Thin'],['bold','Bold']])}</div></div>`}
+function home(){const h=S.hist[0];
+ return `<div class="hero"><div class="mini dk"></div><span style="font-size:22px">→</span><div class="mini"></div><b>Printable Notes<small>Convert fast, clean notes</small></b></div><h2>Start New Conversion</h2><div class="dz"><p>Choose a PDF file to convert your notes into a print-ready format.</p><button class="pri" data-a="pick">Choose PDF</button></div><h2>Recent Conversion</h2>${h?`<div class="card rc"><div><b>${esc(h.name)}</b><br><span>${esc(h.date)} • ${h.pages} pages</span><br><span class="tag">${h.mb} MB</span></div></div>`:'<p class="mu">Nothing yet. Your conversions show up here.</p>'}<h2>Features</h2><div class="ft">${FT.slice(0,ftAll?8:4).map(f=>`<div><i>${f[0]}</i><b>${f[1]}</b><span>${f[2]}</span></div>`).join('')}</div><button class="more" data-a="ft">${ftAll?'Show less':'See all 8 features'}</button>`}
+function hist(){return '<h2>History</h2>'+(S.hist.length?S.hist.map((h,i)=>`<div class="card rc"><div><b>${esc(h.name)}</b><br><span>${esc(h.date)} • ${h.pages} pages • ${h.mb} MB</span></div>${h.blob?`<button class="pri" style="padding:9px 16px" data-a="hdl" data-i="${i}">Save</button>`:''}</div>`).join(''):'<p class="mu">No conversions yet.</p>')}
+
+const io=new IntersectionObserver(es=>es.forEach(async e=>{if(!e.isIntersecting)return;io.unobserve(e.target);const c=e.target;
+ try{const pg=await S.doc.getPage(+c.dataset.p),v1=pg.getViewport({scale:1}),v=pg.getViewport({scale:360/v1.width});c.width=v.width;c.height=v.height;await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise}catch(x){}}),{rootMargin:'400px'});
+function upd(){const t=S.items.length,r=S.items.filter(i=>i.rm).length,b=S.items.filter(i=>i.bl&&!i.rm).length,f=fin().length;
+ $('#sb').innerHTML=`Total: <b>${t}</b> • Removed: <b>${r}</b> • Blank: <b>${b}</b> • Final: <b>${f}</b>`;
+ V.querySelectorAll('.tile').forEach((el,i)=>{const it=S.items[i];el.classList.toggle('rm',!!it.rm);el.querySelector('.ck').textContent=it.rm?'✕':'✓';el.querySelector('.add').classList.toggle('on',!!it.bl)});
+ const cb=$('#cb');cb.textContent=`Continue with ${f} Pages →`;cb.disabled=!f}
+
+async function open(file){
+ try{S.doc=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise}catch(e){alert('Could not read this PDF. It may be password-protected or damaged.');return}
+ const p1=await S.doc.getPage(1),v=p1.getViewport({scale:1});S.ar=v.width/v.height;S.pw=v.width;S.ph=v.height;
+ S.name=file.name;S.items=Array.from({length:S.doc.numPages},(_,i)=>({p:i+1}));S.blob=null;S.busy=false;S.step=2;render()}
+function lum(d){let s=0,n=0;for(let i=0;i<d.length;i+=16){s+=.299*d[i]+.587*d[i+1]+.114*d[i+2];n++}return s/n}
+function conv(im,keep){const d=im.data,h=new Array(32).fill(0);for(let i=0;i<d.length;i+=16)h[Math.max(d[i],d[i+1],d[i+2])>>3]++;let bi=0;for(let i=1;i<32;i++)if(h[i]>h[bi])bi=i;const bg=bi*8+4;if(bg>150)return false;const t=bg+30;for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2],m=Math.max(r,g,b);let s=(m-t)/60;s=s<0?0:Math.pow(Math.min(1,s),.7);let cr=0,cg=0,cb=0;
+ if(keep&&m>0){const sat=(m-Math.min(r,g,b))/m,f=(.15+.5*sat)*255/m;cr=r*f;cg=g*f;cb=b*f}
+ d[i]=255-s*(255-cr);d[i+1]=255-s*(255-cg);d[i+2]=255-s*(255-cb)}return true}
+const tick=()=>new Promise(r=>setTimeout(r));
+async function run(){
+ S.busy=true;render();
+ const L=cur(),W=L.o==='l'?842:595,H=L.o==='l'?595:842,{cs,note}=geo(L,W,H),list=fin(),per=cs.length,sheets=Math.ceil(list.length/per);
+ const px=Math.min(1600,Math.max(cs[0][2],cs[0][3])*2.2),lw=S.border==='bold'?1.6:.5;
+ try{
+  const doc=new window.jspdf.jsPDF({unit:'pt',format:'a4',orientation:L.o});
+  doc.setDrawColor(150);doc.setLineWidth(lw);
+  for(let s=0;s<sheets;s++){
+   if(s)doc.addPage('a4',L.o);
+   $('#pb').style.width=(s/sheets*100)+'%';$('#pt').textContent=`Sheet ${s+1} of ${sheets}`;await tick();
+   for(let k=0;k<per;k++){const e=list[s*per+k];if(!e)break;const[x,y,w,h]=cs[k];if(L.note==='r'&&S.border!=='none')doc.rect(x,y,w,h);
+    if(e.blank){if(S.border!=='none')doc.rect(x,y,w,h);continue}
+    const pg=await S.doc.getPage(e.p),v1=pg.getViewport({scale:1}),f=Math.min(w/v1.width,h/v1.height),v=pg.getViewport({scale:Math.min(f*3.5,2600/Math.max(v1.width,v1.height))});
+    const c=document.createElement('canvas');c.width=Math.floor(v.width);c.height=Math.floor(v.height);
+    const x2=c.getContext('2d',{willReadFrequently:true});x2.fillStyle='#fff';x2.fillRect(0,0,c.width,c.height);
+    await pg.render({canvasContext:x2,viewport:v}).promise;
+    const im=x2.getImageData(0,0,c.width,c.height);if(S.conv==='auto'&&lum(im.data)<110&&conv(im,S.color==='keep'))x2.putImageData(im,0,0)
+    const iw=v1.width*f,ih=v1.height*f,ix=x+(w-iw)/2,iy=y+(h-ih)/2;
+    doc.addImage(c.toDataURL('image/jpeg',.92),'JPEG',ix,iy,iw,ih);if(S.border!=='none'&&L.note!=='r')doc.rect(ix,iy,iw,ih)}
+   if(note){const[x,y,w,h]=note;doc.setDrawColor(67,56,202);doc.setLineWidth(1);doc.roundedRect(x,y,w,h,6,6,'S');doc.setFontSize(10);doc.setTextColor(40);const ty=L.note==='r'?y-8:y+15;doc.text('Quick Note',x+8,ty);doc.text('date: ______',x+w-72,ty);
+    doc.setDrawColor(215);doc.setLineWidth(.5);if(L.note!=='r')for(let yy=y+36;yy<y+h-6;yy+=20)doc.line(x+8,yy,x+w-8,yy);doc.setDrawColor(150);doc.setLineWidth(lw)}
+   await tick()}
+  const blob=doc.output('blob'),name='Printable_Notes_'+Date.now()+'.pdf';
+  S.blob={blob,sheets,pages:list.length,name};
+  const h={name,date:new Date().toLocaleString(),pages:list.length,mb:(blob.size/1048576).toFixed(1),blob};S.hist.unshift(h);
+  try{localStorage.setItem('dtp_h',JSON.stringify(S.hist.slice(0,20).map(x=>({name:x.name,date:x.date,pages:x.pages,mb:x.mb}))))}catch(e){}
+ }catch(e){alert('Conversion failed: '+(e&&e.message||'try a smaller PDF'))}
+ S.busy=false;render()}
+async function shot(blob){try{const d=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise,pg=await d.getPage(1),v1=pg.getViewport({scale:1}),v=pg.getViewport({scale:1000/v1.width}),c=$('#rp');c.width=v.width;c.height=v.height;await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise}catch(e){}}
+async function save(blob,name,out){const m=t=>{if(out)out.textContent=t};
+ try{const C=window.Capacitor;
+  if(C&&C.isNativePlatform&&C.isNativePlatform()){
+   const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(blob)});
+   const w=await C.Plugins.Filesystem.writeFile({path:name,data:b64,directory:'CACHE'});
+   await C.Plugins.Share.share({title:name,url:w.uri,dialogTitle:'Save or share PDF'});
+   m('Share sheet opened. Choose Save to Files, Drive, WhatsApp or Print.')
+  }else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);m('Download started.')}
+ }catch(e){m('Could not save: '+((e&&e.message)||'try again'))}}
+
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,i=+t.dataset.i,v=t.dataset.v;
+ if(a==='tab'){S.tab=v;render()}
+ else if(a==='pick')$('#f').click();
+ else if(a==='ft'){ftAll=!ftAll;render()}
+ else if(a==='tog'){S.items[i].rm=!S.items[i].rm;upd()}
+ else if(a==='bl'){e.stopPropagation();S.items[i].bl=!S.items[i].bl;upd()}
+ else if(a==='tl'){S.tl=v;render()}
+ else if(a==='lay'){S.lay=v;render()}
+ else if(a==='set'){S[t.dataset.k]=v;render()}
+ else if(a==='back'){if(S.busy)return;if(S.blob||S.step===2){S.blob=null;S.step=0;S.tab='home'}else S.step--;render()}
+ else if(a==='new'){S.blob=null;S.step=0;S.tab='home';render()}
+ else if(a==='dl')save(S.blob.blob,S.blob.name,$('#dm'));
+ else if(a==='hdl')save(S.hist[i].blob,S.hist[i].name,null)});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.tile,.lc')){e.preventDefault();e.target.click()}});
+$('#cb').onclick=()=>{if(S.step<4){S.step++;render()}else run()};
+$('#f').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)open(f)};
+render();
+</script></body></html>
