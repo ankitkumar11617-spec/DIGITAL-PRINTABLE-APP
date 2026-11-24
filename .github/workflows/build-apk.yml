@@ -13,12 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract project ZIP
+      - name: Extract project ZIP and apply latest index.html
         run: |
           mkdir -p build_src
           unzip -o printable-notes-project.zip -d build_src
           PKG_PATH=$(find build_src -name "package.json" -not -path "*/node_modules/*" | head -n 1)
           PROJECT_DIR=$(dirname "$PKG_PATH")
+          if [ -f "index.html" ]; then
+            cp -f index.html "$PROJECT_DIR/www/index.html"
+          fi
           echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
           echo "Found project at: $PROJECT_DIR"
 
