@@ -217,24 +217,49 @@ button:focus-visible,.tile:focus-visible,.lc:focus-visible{outline:2px solid var
 const $=s=>document.querySelector(s),V=$('#v');
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 pdfjsLib.GlobalWorkerOptions.workerSrc='lib/pdf.worker.min.js';
-const L0=[['g1',1,1,'p','','1 Slide','Portrait','1×1 Full page'],['g2',1,2,'p','','2 Slides','Portrait','1×2 Grid'],['g3',1,3,'p','','3 Slides','Popular','1×3 Grid'],['g4',2,2,'l','','4 Slides','Landscape','2×2 Best for reading'],['g6',2,3,'p','','6 Slides','Portrait','2×3 Grid'],['g8',2,4,'p','','8 Slides','Recommended','4×2 Max paper savings'],['g10',2,5,'p','','10 Slides','Compact','2×5 Grid'],['q3',1,3,'p','b','3 Slides','New','3 Slides + Note'],['q4',1,4,'p','r','4 Slides','New','4 Slides + Note'],['q6',2,3,'p','b','6 Slides','New','6 Slides + Note']];
+const L0=[
+  ['g1',1,1,'p','','1 Slide','Portrait','1×1 Full page'],
+  ['g2',1,2,'p','','2 Slides','Portrait','1×2 Grid'],
+  ['g3',1,3,'p','','3 Slides','Popular','1×3 Grid'],
+  ['g4',2,2,'l','','4 Slides','Landscape','2×2 Best for reading'],
+  ['g6',2,3,'p','','6 Slides','Portrait','2×3 Grid'],
+  ['g8',2,4,'p','','8 Slides','Recommended','4×2 Max paper savings'],
+  ['g10',2,5,'p','','10 Slides','Compact','2×5 Grid'],
+  ['q3e',1,3,'p','e','3 Slides','Each Note','Note box below each slide'],
+  ['q3',1,3,'p','b','3 Slides','New','3 Slides + Bottom Note'],
+  ['q4',1,4,'p','r','4 Slides','New','4 Slides + Side Note'],
+  ['q6',2,3,'p','b','6 Slides','New','6 Slides + Bottom Note']
+];
 const LAY=L0.map(a=>({id:a[0],c:a[1],r:a[2],o:a[3],note:a[4],t:a[5],tag:a[6],cap:a[7],n:a[1]*a[2]}));
-const S={tab:'home',step:0,doc:null,name:'',items:[],lay:'g3',tl:'all',color:'keep',conv:'auto',border:'thin',hist:[],ar:.7,busy:false,blob:null};
+const S={tab:'home',step:0,doc:null,name:'',items:[],lay:'q3e',tl:'all',color:'keep',conv:'auto',border:'thin',hist:[],ar:.7,busy:false,blob:null};
 try{S.hist=JSON.parse(localStorage.getItem('dtp_h')||'[]')}catch(e){}
 const FT=[['⟳','Smart Convert','Dark class notes become clean white pages.'],['▦','Multiple Layouts','Fit more slides on one A4 page.'],['☑','Select Pages','Remove unwanted slides first.'],['＋','Add Blank Page','Add a blank slot anywhere.'],['✎','Quick Note Layout','Space for formulas and notes.'],['⚙','Custom Settings','Colour mode and border style.'],['⏱','Conversion History','See past conversions.'],['🔒','On-Device Processing','No upload needed.']];
 let ftAll=false;
 
-function geo(L,W,H){const rr=L.note==='r',m=rr?16:22,g=rr?0:8;let aw=W-2*m,ah=H-2*m,note=null;
+function geo(L,W,H){
+ const rr=L.note==='r',m=rr?16:22,g=rr?0:10;let aw=W-2*m,ah=H-2*m,note=null,notes=[];
+ if(L.note==='e'){
+  const cw=(aw-(L.c-1)*g)/L.c,rh=(ah-(L.r-1)*g)/L.r,sh=rh*.71,ng=4,nh=rh-sh-ng,cs=[];
+  for(let j=0;j<L.r;j++)for(let i=0;i<L.c;i++){
+   const x=m+i*(cw+g),y=m+j*(rh+g);
+   cs.push([x,y,cw,sh]);notes.push([x,y+sh+ng,cw,nh]);
+  }
+  return{cs,note,notes}
+ }
  if(L.note==='b'){const t=ah*.8;note=[m,m+t+g,aw,ah-t-g];ah=t}
  if(rr){const t=aw*.62,gp=10;note=[m+t+gp,m+24,aw-t-gp+m-8,ah-24];aw=t}
  const cw=(aw-(L.c-1)*g)/L.c,ch=(ah-(L.r-1)*g)/L.r,cs=[];
  for(let j=0;j<L.r;j++)for(let i=0;i<L.c;i++)cs.push([m+i*(cw+g),m+j*(ch+g),cw,ch]);
- return{cs,note}}
-function prev(L){const W=L.o==='l'?842:595,H=L.o==='l'?595:842,{cs,note}=geo(L,W,H);
+ return{cs,note,notes}}
+
+function prev(L){
+ const W=L.o==='l'?842:595,H=L.o==='l'?595:842,{cs,note,notes}=geo(L,W,H);
  let s=`<svg class="pvw" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" rx="10" style="fill:var(--card-s);stroke:var(--line);stroke-width:4"/>`;
  cs.forEach(c=>s+=`<rect x="${c[0]}" y="${c[1]}" width="${c[2]}" height="${c[3]}" rx="6" style="fill:var(--ac);fill-opacity:.15;stroke:var(--ac);stroke-opacity:.5;stroke-width:2"/>`);
  if(note)s+=`<rect x="${note[0]}" y="${note[1]}" width="${note[2]}" height="${note[3]}" rx="8" style="fill:none;stroke:var(--ac);stroke-width:3"/><text x="${note[0]+14}" y="${note[1]+34}" font-size="28" style="fill:var(--fg)">Quick Note</text>`;
+ if(notes&&notes.length)notes.forEach(n=>s+=`<rect x="${n[0]}" y="${n[1]}" width="${n[2]}" height="${n[3]}" rx="6" style="fill:none;stroke:var(--ac);stroke-width:2.5;stroke-dasharray:8 5"/><text x="${n[0]+14}" y="${n[1]+n[3]*.66}" font-size="26" style="fill:var(--mut)">Note</text>`);
  return s+'</svg>'}
+
 const fin=()=>{const a=[];S.items.forEach(it=>{if(!it.rm)a.push({p:it.p});if(it.bl)a.push({blank:1})});return a};
 const cur=()=>{const L=LAY.find(x=>x.id===S.lay);return(!L.note&&L.o==='l'&&S.pw<S.ph)?{...L,o:'p'}:L};
 function scl(){const L=cur(),W=L.o==='l'?842:595,H=L.o==='l'?595:842,c=geo(L,W,H).cs[0],ref=S.pw<S.ph?Math.min(595/S.pw,842/S.ph):Math.min(842/S.pw,595/S.ph),p=Math.round(Math.min(c[2]/S.pw,c[3]/S.ph)/ref*100),bad=S.pw<S.ph&&p<50;return `<p class="mu" style="margin:0 0 12px;color:${bad?'#e11d48':'var(--mut)'}">Pages print at about ${p}% size${bad?'. Text will be hard to read, pick a layout with fewer slides per sheet.':'.'}</p>`}
@@ -256,7 +281,7 @@ function render(){
  if(S.step===4){
   if(S.blob){const b=S.blob;V.innerHTML=`<div class="card"><canvas id="rp" class="rp"></canvas><div class="st"><div><b>${b.sheets}</b><span>sheets for ${b.pages} pages</span></div><div><b>${(b.blob.size/1048576).toFixed(1)} MB</b><span>PDF size</span></div></div><button class="pri" style="width:100%" data-a="dl">Download PDF</button><button class="sec" data-a="new">Convert another PDF</button><p class="mu" id="dm" role="status"></p></div>`;shot(b.blob)}
   else if(S.busy)V.innerHTML='<div class="card"><h3>Converting…</h3><div class="prog"><div id="pb"></div></div><p class="mu" id="pt" role="status"></p></div>';
-  else{const l=cur(),n=fin().length;V.innerHTML=`<div class="card"><h3>${n} pages → ${Math.ceil(n/l.n)} sheets</h3><p class="mu" style="text-align:left">${l.t} per sheet, ${l.o==='l'?'landscape':'portrait'}${l.note?', with Quick Note':''}</p></div>`+setUI();cb.textContent='Convert & save →';cb.disabled=!n}}
+  else{const l=cur(),n=fin().length;V.innerHTML=`<div class="card"><h3>${n} pages → ${Math.ceil(n/l.n)} sheets</h3><p class="mu" style="text-align:left">${l.t} per sheet, ${l.o==='l'?'landscape':'portrait'}${l.note==='e'?', with Note below each slide':l.note?', with Quick Note':''}</p></div>`+setUI();cb.textContent='Convert & save →';cb.disabled=!n}}
 }
 function setUI(){const o=(k,a)=>a.map(x=>`<button data-a="set" data-k="${k}" data-v="${x[0]}" class="${S[k]===x[0]?'on':''}">${x[1]}</button>`).join('');
  return `<div class="card"><h3>Colour mode</h3><div class="seg">${o('color',[['keep','Keep pen colours'],['bw','Black & white']])}</div></div><div class="card"><h3>Dark background cleanup</h3><div class="seg">${o('conv',[['auto','Auto (dark pages)'],['off','Off (keep as is)']])}</div></div><div class="card"><h3>Border style</h3><div class="seg">${o('border',[['none','None'],['thin','Thin'],['bold','Bold']])}</div></div>`}
@@ -282,8 +307,8 @@ function conv(im,keep){const d=im.data,h=new Array(32).fill(0);for(let i=0;i<d.l
 const tick=()=>new Promise(r=>setTimeout(r));
 async function run(){
  S.busy=true;render();
- const L=cur(),W=L.o==='l'?842:595,H=L.o==='l'?595:842,{cs,note}=geo(L,W,H),list=fin(),per=cs.length,sheets=Math.ceil(list.length/per);
- const px=Math.min(1600,Math.max(cs[0][2],cs[0][3])*2.2),lw=S.border==='bold'?1.6:.5;
+ const L=cur(),W=L.o==='l'?842:595,H=L.o==='l'?595:842,{cs,note,notes}=geo(L,W,H),list=fin(),per=cs.length,sheets=Math.ceil(list.length/per);
+ const lw=S.border==='bold'?1.6:.5;
  try{
   const doc=new window.jspdf.jsPDF({unit:'pt',format:'a4',orientation:L.o});
   doc.setDrawColor(150);doc.setLineWidth(lw);
@@ -291,14 +316,25 @@ async function run(){
    if(s)doc.addPage('a4',L.o);
    $('#pb').style.width=(s/sheets*100)+'%';$('#pt').textContent=`Sheet ${s+1} of ${sheets}`;await tick();
    for(let k=0;k<per;k++){const e=list[s*per+k];if(!e)break;const[x,y,w,h]=cs[k];if(L.note==='r'&&S.border!=='none')doc.rect(x,y,w,h);
-    if(e.blank){if(S.border!=='none')doc.rect(x,y,w,h);continue}
-    const pg=await S.doc.getPage(e.p),v1=pg.getViewport({scale:1}),f=Math.min(w/v1.width,h/v1.height),v=pg.getViewport({scale:Math.min(f*3.5,2600/Math.max(v1.width,v1.height))});
-    const c=document.createElement('canvas');c.width=Math.floor(v.width);c.height=Math.floor(v.height);
-    const x2=c.getContext('2d',{willReadFrequently:true});x2.fillStyle='#fff';x2.fillRect(0,0,c.width,c.height);
-    await pg.render({canvasContext:x2,viewport:v}).promise;
-    const im=x2.getImageData(0,0,c.width,c.height);if(S.conv==='auto'&&lum(im.data)<110&&conv(im,S.color==='keep'))x2.putImageData(im,0,0)
-    const iw=v1.width*f,ih=v1.height*f,ix=x+(w-iw)/2,iy=y+(h-ih)/2;
-    doc.addImage(c.toDataURL('image/jpeg',.92),'JPEG',ix,iy,iw,ih);if(S.border!=='none'&&L.note!=='r')doc.rect(ix,iy,iw,ih)}
+    if(e.blank){if(S.border!=='none')doc.rect(x,y,w,h)}
+    else{
+     const pg=await S.doc.getPage(e.p),v1=pg.getViewport({scale:1}),f=Math.min(w/v1.width,h/v1.height),v=pg.getViewport({scale:Math.min(f*3.5,2600/Math.max(v1.width,v1.height))});
+     const c=document.createElement('canvas');c.width=Math.floor(v.width);c.height=Math.floor(v.height);
+     const x2=c.getContext('2d',{willReadFrequently:true});x2.fillStyle='#fff';x2.fillRect(0,0,c.width,c.height);
+     await pg.render({canvasContext:x2,viewport:v}).promise;
+     const im=x2.getImageData(0,0,c.width,c.height);if(S.conv==='auto'&&lum(im.data)<110&&conv(im,S.color==='keep'))x2.putImageData(im,0,0)
+     const iw=v1.width*f,ih=v1.height*f,ix=x+(w-iw)/2,iy=y+(h-ih)/2;
+     doc.addImage(c.toDataURL('image/jpeg',.92),'JPEG',ix,iy,iw,ih);if(S.border!=='none'&&L.note!=='r')doc.rect(ix,iy,iw,ih)
+    }
+    if(notes&&notes[k]){
+     const[nx,ny,nw,nh]=notes[k];
+     doc.setDrawColor(99,102,241);doc.setLineWidth(.8);doc.roundedRect(nx,ny,nw,nh,5,5,'S');
+     doc.setFontSize(9);doc.setTextColor(80);doc.text('Note:',nx+8,ny+13);
+     doc.setDrawColor(215);doc.setLineWidth(.5);
+     for(let yy=ny+28;yy<ny+nh-6;yy+=18)doc.line(nx+8,yy,nx+nw-8,yy);
+     doc.setDrawColor(150);doc.setLineWidth(lw);
+    }
+   }
    if(note){const[x,y,w,h]=note;doc.setDrawColor(67,56,202);doc.setLineWidth(1);doc.roundedRect(x,y,w,h,6,6,'S');doc.setFontSize(10);doc.setTextColor(40);const ty=L.note==='r'?y-8:y+15;doc.text('Quick Note',x+8,ty);doc.text('date: ______',x+w-72,ty);
     doc.setDrawColor(215);doc.setLineWidth(.5);if(L.note!=='r')for(let yy=y+36;yy<y+h-6;yy+=20)doc.line(x+8,yy,x+w-8,yy);doc.setDrawColor(150);doc.setLineWidth(lw)}
    await tick()}
@@ -337,4 +373,3 @@ $('#cb').onclick=()=>{if(S.step<4){S.step++;render()}else run()};
 $('#f').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)open(f)};
 render();
 </script></body></html>
-
